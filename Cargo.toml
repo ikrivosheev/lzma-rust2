@@ -1,0 +1,21 @@
+[package]
+description = "LZMA/LZMA2 codec ported from 'tukaani xz for java'"
+edition = "2021"
+homepage = "https://github.com/hasenbanck/sevenz-rust2/tree/main/lzma-rust2"
+name = "lzma-rust2"
+repository = "https://github.com/hasenbanck/sevenz-rust2/tree/main/lzma-rust2"
+rust-version = "1.74"
+version = "0.2.2"
+keywords = ["lzma"]
+license = "Apache-2.0"
+
+[features]
+default = ["encoder"]
+encoder = []
+
+[dependencies]
+byteorder = "1"
+
+[package.metadata.docs.rs]
+features = ["encoder"]
+rustdoc-args = ["--cfg", "docsrs"]
