@@ -147,10 +147,7 @@ impl<R: Read> LZMAReader<R> {
         if mem_limit_kb < need_mem {
             return Err(Error::new(
                 ErrorKind::OutOfMemory,
-                format!(
-                    "{}kb memory needed,but limit was {}kb",
-                    need_mem, mem_limit_kb
-                ),
+                format!("{need_mem}kb memory needed,but limit was {mem_limit_kb}kb"),
             ));
         }
         Self::construct1(reader, uncomp_size, props, dict_size, preset_dict)
