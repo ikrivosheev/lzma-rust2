@@ -8,6 +8,7 @@ rust-version = "1.85"
 version = "0.3.1"
 keywords = ["lzma"]
 license = "Apache-2.0"
+exclude = ["/tests/data"]
 
 [features]
 default = ["asm", "encoder"]
