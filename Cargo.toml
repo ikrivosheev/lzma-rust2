@@ -1,11 +1,11 @@
 [package]
 description = "LZMA/LZMA2 codec ported from 'tukaani xz for java'"
 edition = "2021"
-homepage = "https://github.com/hasenbanck/sevenz-rust2/tree/main/lzma-rust2"
+homepage = "https://github.com/hasenbanck/lzma-rust2/"
 name = "lzma-rust2"
-repository = "https://github.com/hasenbanck/sevenz-rust2/tree/main/lzma-rust2"
+repository = "https://github.com/hasenbanck/lzma-rust2/"
 rust-version = "1.85"
-version = "0.3.0"
+version = "0.3.1"
 keywords = ["lzma"]
 license = "Apache-2.0"
 
