@@ -12,7 +12,7 @@ fn test_round_trip(data: &[u8], level: u32) {
     let mut compressed = Vec::new();
 
     {
-        let mut writer = LZMA2WriterMT::new(&mut compressed, &option, MIN_STREAM_SIZE, 32);
+        let mut writer = LZMA2WriterMT::new(&mut compressed, &option, MIN_STREAM_SIZE, 4);
         writer.write_all(data).unwrap();
         writer.finish().unwrap();
     }
@@ -20,7 +20,7 @@ fn test_round_trip(data: &[u8], level: u32) {
     let mut uncompressed = Vec::new();
 
     {
-        let mut reader = LZMA2ReaderMT::new(Cursor::new(compressed), option.dict_size, None, 32);
+        let mut reader = LZMA2ReaderMT::new(Cursor::new(compressed), option.dict_size, None, 4);
         reader.read_to_end(&mut uncompressed).unwrap();
         assert!(reader.stream_count() > 1);
     }
