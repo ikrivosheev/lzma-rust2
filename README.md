@@ -46,9 +46,9 @@ and `alloc`.
 
 The custom types include:
 
-- [`Error`]: A custom error enum with variants for different error conditions.
-- [`Read`]: A trait similar to `std::io::Read`.
-- [`Write`]: A trait similar to `std::io::Write`.
+- `Error`: A custom error enum with variants for different error conditions.
+- `Read`: A trait similar to `std::io::Read`.
+- `Write`: A trait similar to `std::io::Write`.
 
 Default implementations for `&[u8]` (Read) and `&mut [u8]` (Write) are provided.
 
