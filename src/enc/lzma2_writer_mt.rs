@@ -13,7 +13,7 @@ use super::LZMA2Writer;
 use crate::{
     set_error,
     work_queue::{WorkStealingQueue, WorkerHandle},
-    LZMAOptions,
+    ByteWriter, LZMAOptions,
 };
 
 /// A work unit for a worker thread.
@@ -66,7 +66,7 @@ impl<W: Write> LZMA2WriterMT<W> {
     ///   Will be clamped to be at least the dictionary size.
     /// - `num_workers`: The maximum number of worker threads for compression.
     ///   Currently capped at 256 Threads.
-    pub fn new(inner: W, options: &LZMAOptions, stream_size: u64, num_workers: u32) -> Self {
+    pub fn new(inner: W, options: LZMAOptions, stream_size: u64, num_workers: u32) -> Self {
         let max_workers = num_workers.clamp(1, 256);
         let stream_size = stream_size.max(options.dict_size as u64);
 
@@ -78,7 +78,7 @@ impl<W: Write> LZMA2WriterMT<W> {
 
         let mut writer = Self {
             inner: Some(inner),
-            options: options.clone(),
+            options,
             result_rx,
             result_tx,
             current_work_unit: Vec::with_capacity((stream_size as usize).min(1024 * 1024)),
@@ -278,17 +278,19 @@ impl<W: Write> LZMA2WriterMT<W> {
         }
     }
 
+    /// Returns a mutable reference to the underlying writer.
     pub fn inner(&mut self) -> &mut W {
         self.inner.as_mut().expect("inner is empty")
     }
 
+    /// Finishes the compression and returns the underlying writer.
     pub fn finish(mut self) -> io::Result<W> {
         self.send_work_unit()?;
 
         // No data was provided to compress
         if self.next_sequence_to_dispatch == 0 {
             let mut inner = self.inner.take().expect("inner is empty");
-            inner.write_all(&[0x00])?;
+            inner.write_u8(0x00)?;
             inner.flush()?;
 
             self.shutdown_flag.store(true, Ordering::Release);
@@ -309,7 +311,7 @@ impl<W: Write> LZMA2WriterMT<W> {
 
         let mut inner = self.inner.take().expect("inner is empty");
 
-        inner.write_all(&[0x00])?;
+        inner.write_u8(0x00)?;
         inner.flush()?;
 
         self.shutdown_flag.store(true, Ordering::Release);

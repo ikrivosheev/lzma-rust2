@@ -1,5 +1,8 @@
 use alloc::{boxed::Box, rc::Rc, vec::Vec};
-use core::cell::{Cell, RefCell};
+use core::{
+    cell::{Cell, RefCell},
+    num::NonZeroU64,
+};
 
 use sha2::Digest;
 
@@ -11,7 +14,7 @@ use crate::{
     enc::{LZMA2Writer, LZMAOptions},
     error_invalid_data, error_invalid_input,
     filter::{bcj::BCJWriter, delta::DeltaWriter},
-    Result, Write,
+    ByteWriter, Result, Write,
 };
 
 trait FinishableWriter: Write {
@@ -106,7 +109,7 @@ pub struct XZOptions {
     /// Checksum type to use.
     pub check_type: CheckType,
     /// Maximum uncompressed size for each block (None = single block).
-    pub block_size: Option<u64>,
+    pub block_size: Option<NonZeroU64>,
     /// Pre-filter to use (at most 3).
     pub filters: Vec<FilterConfig>,
 }
@@ -139,7 +142,7 @@ impl XZOptions {
     }
 
     /// Set the maximum block size (None means a single block, which is the default).
-    pub fn set_block_size(&mut self, block_size: Option<u64>) {
+    pub fn set_block_size(&mut self, block_size: Option<NonZeroU64>) {
         self.block_size = block_size;
     }
 
@@ -241,7 +244,7 @@ impl<'writer, W: Write + 'writer> XZWriter<'writer, W> {
         self.writer.write_all(&stream_flags)?;
 
         let crc = CRC32.checksum(&stream_flags);
-        self.writer.write_all(&crc.to_le_bytes())?;
+        self.writer.write_u32(crc)?;
 
         self.header_written = true;
 
@@ -313,7 +316,7 @@ impl<'writer, W: Write + 'writer> XZWriter<'writer, W> {
 
     fn should_finish_block(&self) -> bool {
         if let Some(block_size) = self.options.block_size {
-            self.block_uncompressed_size >= block_size
+            self.block_uncompressed_size >= block_size.get()
         } else {
             false
         }
@@ -437,7 +440,7 @@ impl<'writer, W: Write + 'writer> XZWriter<'writer, W> {
         let header_size = total_size_needed.div_ceil(4) * 4;
         let header_size_encoded = ((header_size / 4) - 1) as u8;
 
-        self.writer.write_all(&[header_size_encoded])?;
+        self.writer.write_u8(header_size_encoded)?;
         self.writer.write_all(&header_data)?;
 
         let padding_needed = header_size - 1 - header_data.len() - 4;
@@ -455,7 +458,7 @@ impl<'writer, W: Write + 'writer> XZWriter<'writer, W> {
             _ => {}
         }
 
-        self.writer.write_all(&crc.finalize().to_le_bytes())?;
+        self.writer.write_u32(crc.finalize())?;
 
         Ok(())
     }
@@ -524,7 +527,7 @@ impl<'writer, W: Write + 'writer> XZWriter<'writer, W> {
 
     fn write_index(&mut self) -> Result<()> {
         // Index indicator (0x00).
-        self.writer.write_all(&[0x00])?;
+        self.writer.write_u8(0x00)?;
 
         let mut index_data = Vec::new();
 
@@ -557,7 +560,7 @@ impl<'writer, W: Write + 'writer> XZWriter<'writer, W> {
             _ => {}
         }
 
-        self.writer.write_all(&crc.finalize().to_le_bytes())?;
+        self.writer.write_u32(crc.finalize())?;
 
         Ok(())
     }
@@ -586,8 +589,8 @@ impl<'writer, W: Write + 'writer> XZWriter<'writer, W> {
         crc.update(&backward_size.to_le_bytes());
         crc.update(&stream_flags);
 
-        self.writer.write_all(&crc.finalize().to_le_bytes())?;
-        self.writer.write_all(&backward_size.to_le_bytes())?;
+        self.writer.write_u32(crc.finalize())?;
+        self.writer.write_u32(backward_size)?;
         self.writer.write_all(&stream_flags)?;
         self.writer.write_all(&XZ_FOOTER_MAGIC)?;
 

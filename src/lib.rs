@@ -1,4 +1,4 @@
-//! LZMA / LZMA2 / XZ compression ported from [tukaani xz for java](https://tukaani.org/xz/java.html).
+//! LZMA / LZMA2 / LZIP / XZ compression ported from [tukaani xz for java](https://tukaani.org/xz/java.html).
 //!
 //! This is a fork of the original, unmaintained lzma-rust crate to continue the development and
 //! maintenance.
@@ -48,6 +48,7 @@
 
 // TODO: There is a lot of code left that only the "encode" feature uses.
 #![allow(dead_code)]
+#![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -55,6 +56,8 @@ extern crate alloc;
 
 mod decoder;
 mod lz;
+#[cfg(feature = "lzip")]
+mod lzip;
 mod lzma2_reader;
 mod lzma_reader;
 mod range_dec;
@@ -84,6 +87,10 @@ pub(crate) use std::io::Write;
 #[cfg(feature = "encoder")]
 pub use enc::*;
 pub use lz::MFType;
+#[cfg(feature = "lzip")]
+pub use lzip::LZIPReader;
+#[cfg(all(feature = "lzip", feature = "encoder"))]
+pub use lzip::{LZIPOptions, LZIPWriter};
 pub use lzma2_reader::{get_memory_usage as lzma2_get_memory_usage, LZMA2Reader};
 #[cfg(feature = "std")]
 pub use lzma2_reader_mt::LZMA2ReaderMT;
@@ -326,6 +333,16 @@ trait ByteReader {
     fn read_u64(&mut self) -> Result<u64>;
 }
 
+trait ByteWriter {
+    fn write_u8(&mut self, value: u8) -> Result<()>;
+
+    fn write_u16(&mut self, value: u16) -> Result<()>;
+
+    fn write_u32(&mut self, value: u32) -> Result<()>;
+
+    fn write_u64(&mut self, value: u64) -> Result<()>;
+}
+
 impl<T: Read> ByteReader for T {
     #[inline(always)]
     fn read_u8(&mut self) -> Result<u8> {
@@ -370,6 +387,34 @@ impl<T: Read> ByteReader for T {
     }
 }
 
+impl<T: Write> ByteWriter for T {
+    #[inline(always)]
+    fn write_u8(&mut self, value: u8) -> Result<()> {
+        self.write_all(&[value])
+    }
+
+    #[inline(always)]
+    fn write_u16(&mut self, value: u16) -> Result<()> {
+        self.write_all(&value.to_le_bytes())
+    }
+
+    #[inline(always)]
+    fn write_u32(&mut self, value: u32) -> Result<()> {
+        self.write_all(&value.to_le_bytes())
+    }
+
+    #[inline(always)]
+    fn write_u64(&mut self, value: u64) -> Result<()> {
+        self.write_all(&value.to_le_bytes())
+    }
+}
+
+#[cfg(feature = "std")]
+#[inline(always)]
+fn error_eof() -> Error {
+    Error::new(std::io::ErrorKind::UnexpectedEof, "unexpected EOF")
+}
+
 #[cfg(feature = "std")]
 #[inline(always)]
 fn error_other(msg: &'static str) -> Error {
@@ -404,6 +449,12 @@ fn error_unsupported(msg: &'static str) -> Error {
 #[inline(always)]
 fn copy_error(error: &Error) -> Error {
     Error::new(error.kind(), error.to_string())
+}
+
+#[cfg(not(feature = "std"))]
+#[inline(always)]
+fn error_eof() -> Error {
+    Error::EOF
 }
 
 #[cfg(not(feature = "std"))]

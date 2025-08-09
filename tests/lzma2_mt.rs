@@ -14,6 +14,7 @@ fn test_round_trip(path: &str, level: u32) {
     let data_len = data.len() as u32;
 
     let option = LZMAOptions::with_preset(level);
+    let dict_size = option.dict_size;
 
     let available_parallelism = std::thread::available_parallelism()
         .unwrap_or(NonZero::new(1).unwrap())
@@ -25,8 +26,8 @@ fn test_round_trip(path: &str, level: u32) {
     {
         let mut writer = LZMA2WriterMT::new(
             &mut compressed,
-            &option,
-            option.dict_size as u64,
+            option,
+            dict_size as u64,
             available_parallelism,
         );
         writer.write_all(&data).unwrap();
@@ -38,13 +39,13 @@ fn test_round_trip(path: &str, level: u32) {
     {
         let mut reader = LZMA2ReaderMT::new(
             Cursor::new(compressed),
-            option.dict_size,
+            dict_size,
             None,
             available_parallelism,
         );
         reader.read_to_end(&mut uncompressed).unwrap();
 
-        if option.dict_size < data_len {
+        if dict_size < data_len {
             assert!(reader.stream_count() > 1);
         }
     }

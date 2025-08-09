@@ -66,6 +66,13 @@ pub struct LZMAReader<R> {
     remaining_size: u64,
 }
 
+impl<R> LZMAReader<R> {
+    /// Unwraps the reader, returning the underlying reader.
+    pub fn into_inner(self) -> R {
+        self.rc.into_inner()
+    }
+}
+
 impl<R: Read> LZMAReader<R> {
     fn construct1(
         reader: R,
