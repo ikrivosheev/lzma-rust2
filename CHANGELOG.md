@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.8.1 - 2025-08-13
+
+### Fixed
+
+- Internally we updated the hash function for the match finders to use a golden ratio based hash instead of the old
+  CRC table based hash. In our test data this was a net win, but it turned out, once tested with bigger datasets,
+  this is a net loss. So we returned back to the CRC table approach (we speak here about a change below 0.01%, but
+  measurable).
+
 ## 0.8.0 - 2025-08-10
 
 ### Added
