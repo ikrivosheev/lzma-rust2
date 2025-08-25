@@ -174,7 +174,7 @@ impl<W: Write> FilterWriter<W> {
                 inner_writer.finish()
             }
             FilterWriter::Bcj(writer) => {
-                let inner_writer = writer.into_inner();
+                let inner_writer = writer.finish()?;
                 inner_writer.finish()
             }
             FilterWriter::Dummy => unimplemented!(),
