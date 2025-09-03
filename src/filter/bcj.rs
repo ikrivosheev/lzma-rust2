@@ -9,9 +9,9 @@ mod x86;
 
 use alloc::{vec, vec::Vec};
 
+use crate::Read;
 #[cfg(feature = "encoder")]
 use crate::Write;
-use crate::{copy_error, Read};
 
 struct BCJFilter {
     is_encoder: bool,
@@ -37,7 +37,6 @@ pub struct BcjReader<R> {
     inner: R,
     filter: BCJFilter,
     state: State,
-    err: Option<crate::Error>,
 }
 
 #[derive(Debug, Default)]
@@ -58,7 +57,6 @@ impl<R> BcjReader<R> {
                 filter_buf: vec![0; FILTER_BUF_SIZE],
                 ..Default::default()
             },
-            err: None,
         }
     }
 
@@ -131,9 +129,7 @@ impl<R: Read> Read for BcjReader<R> {
         if buf.is_empty() {
             return Ok(0);
         }
-        if let Some(e) = self.err.as_ref() {
-            return Err(copy_error(e));
-        }
+
         let mut len = buf.len();
         let mut state = core::mem::take(&mut self.state);
         let mut off = 0;
@@ -174,11 +170,9 @@ impl<R: Read> Read for BcjReader<R> {
             let temp = &mut state.filter_buf[start..(start + in_size)];
             in_size = match self.inner.read(temp) {
                 Ok(s) => s,
-                Err(e) => {
-                    let err = copy_error(&e);
-                    self.err = Some(err);
+                Err(error) => {
                     self.state = state;
-                    return Err(e);
+                    return Err(error);
                 }
             };
 

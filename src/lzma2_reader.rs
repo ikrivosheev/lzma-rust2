@@ -1,10 +1,9 @@
 use super::{
-    copy_error,
     decoder::LZMADecoder,
     error_invalid_input,
     lz::LZDecoder,
     range_dec::{RangeDecoder, RangeDecoderBuffer},
-    Error, Read,
+    Read,
 };
 use crate::ByteReader;
 
@@ -36,7 +35,6 @@ pub struct Lzma2Reader<R> {
     need_dict_reset: bool,
     need_props: bool,
     end_reached: bool,
-    error: Option<Error>,
 }
 
 /// Calculates the memory usage in KiB required for LZMA2 decompression.
@@ -85,7 +83,6 @@ impl<R: Read> Lzma2Reader<R> {
             need_dict_reset: !has_preset,
             need_props: true,
             end_reached: false,
-            error: None,
         }
     }
 
@@ -169,13 +166,12 @@ impl<R: Read> Lzma2Reader<R> {
 
         Ok(())
     }
+}
 
-    fn read_decode(&mut self, buf: &mut [u8]) -> crate::Result<usize> {
+impl<R: Read> Read for Lzma2Reader<R> {
+    fn read(&mut self, buf: &mut [u8]) -> crate::Result<usize> {
         if buf.is_empty() {
             return Ok(0);
-        }
-        if let Some(error) = &self.error {
-            return Err(copy_error(error));
         }
 
         if self.end_reached {
@@ -215,24 +211,5 @@ impl<R: Read> Lzma2Reader<R> {
             }
         }
         Ok(size)
-    }
-}
-
-impl<R: Read> Read for Lzma2Reader<R> {
-    fn read(&mut self, buf: &mut [u8]) -> crate::Result<usize> {
-        match self.read_decode(buf) {
-            Ok(size) => Ok(size),
-            Err(error) => {
-                #[cfg(not(feature = "std"))]
-                {
-                    self.error = Some(error);
-                }
-                #[cfg(feature = "std")]
-                {
-                    self.error = Some(Error::new(error.kind(), error.to_string()));
-                }
-                Err(error)
-            }
-        }
     }
 }
