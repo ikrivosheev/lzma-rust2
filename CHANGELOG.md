@@ -5,11 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.14.0 - Unreleased
+
+### Changed
+
+- Breaking change: Changed CheckType's default from CRC32 to CRC64 @sorairolake (#37)
+
 ## 0.13.0 - 2025-09-03
 
 ### Changed
 
-- Breaking change: Rename identifiers to follow Rust API Guidelines @sorairolake (#59)
+- Breaking change: Rename identifiers to follow Rust API Guidelines @sorairolake (#35)
 - Breaking change: All single threaded reader / writer are now implementing UnwindSafe and RefUnwindSafe.
   Before they saved the last std::io:error and kept returning it for all following red/writes. Now they only
   return that particular error once.
