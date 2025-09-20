@@ -5,11 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 0.14.0 - Unreleased
+## 0.14.0 - 2025-09-20
 
 ### Changed
 
 - Breaking change: Changed CheckType's default from CRC32 to CRC64 @sorairolake (#37)
+- Breaking change: All Writer now use the AutoFinisher struct to provide auto finishing writer @sorairolake (#46)
+
+### Fixed
+
+- Export missing `FilterConfig` and `FilterType` @sorairolake (#50)
 
 ## 0.13.0 - 2025-09-03
 
