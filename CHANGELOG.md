@@ -5,11 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 0.14.2 - 2025-09-24
+## 0.14.2 - 2025-09-25
 
 ### Fixed
 
-- Fix reading XZ files with multiple streams (#56)
+- Fix reading XZ files with multiple streams (#57)
+- Fix integer overflow when using LZMA2 dictionary sizes near 4 GiB (#58)
 
 ## 0.14.1 - 2025-09-21
 
