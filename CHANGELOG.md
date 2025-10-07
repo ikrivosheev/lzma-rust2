@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix issue when compiling with feature `xz` but without including the feature `encoder` (#61)
+- Fix issue when reading XZ files that allocate too many records (#62)
 
 ## 0.14.2 - 2025-09-25
 
