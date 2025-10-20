@@ -148,7 +148,7 @@ impl<R: Read> Lzma2Reader<R> {
             return Err(error_invalid_input("corrupted input data (LZMA2:2)"));
         } else {
             self.is_lzma_chunk = false;
-            self.uncompressed_size = (self.inner.read_u16_be()? + 1) as _;
+            self.uncompressed_size = (self.inner.read_u16_be()? as usize) + 1;
         }
         Ok(())
     }

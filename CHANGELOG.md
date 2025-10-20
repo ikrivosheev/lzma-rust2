@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.14.4 - unreleased
+
+### Fixed
+
+- Fix issue when reading some compressed lzma2 data, which could lead to an integer overflow (#64)
+
 ## 0.14.3 - 2025-10-07
 
 ### Fixed
